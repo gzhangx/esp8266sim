@@ -124,19 +124,19 @@ public:
 		return ::send(m_sockfd,buf,len,0);
 	}
 
-	inline bool send_t(const char *buf,int len){
+	inline size_t send_t(const char *buf,int len){
         if (::send(m_sockfd, buf, len, 0) < 0) {
             raiseError("Socket closed");
-            return false;
+            return -1;
         }
-        return true;
+        return len;
 	}
 
-	inline bool send_t(unsigned char *buf,int len){
+	inline size_t send_t(unsigned char *buf,int len){
 		return send_t((const char*)buf,len);
 	}
 
-	inline bool send_t(char *buf,int len){
+	inline size_t send_t(char *buf,int len){
 		return send_t((const char*)buf,len);
 	}
 
@@ -153,9 +153,9 @@ public:
 		return recv_t((char *)buf,len);
 	}
 
-	inline void sendbyte(unsigned char thebyte)
+	inline size_t sendbyte(unsigned char thebyte)
 	{
-		send_t((const char*)&thebyte,1);
+		return send_t((const char*)&thebyte,1);
 	}
 
 	bool sendall(const unsigned char *buf,const int len);

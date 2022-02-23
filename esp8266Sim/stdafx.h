@@ -13,3 +13,4 @@
 
 #include "libs\gtcpip.h"
 // TODO: reference additional headers your program requires here
+#include "ESP8266WiFi.h"

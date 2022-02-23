@@ -9,29 +9,15 @@ class WiFiClient {
     int curPos = 0;
     int curLen = 0;
 public:
-    WiFiClient(){
-        curPos = 0;
-        curLen = 0;
-    }
-    WiFiClient(gCTcpIp & t) {
-        tcp = t;
-        curPos = 0;
-        curLen = 0;
-    }
-    bool connected() {
-        return tcp.connected();
-    }
+    WiFiClient();
+    WiFiClient(gCTcpIp & t);
+    virtual operator bool();
+    bool connected();
 
-    bool available() {
-        if (curLen <= 0 || curPos >= curLen) {
-            curLen = tcp.recv(buf, RDBUFMAX);
-            curPos = 0;
-        }
-        return curPos < curLen;
-    }
-    char read() {        
-        return buf[curPos++];
-    }
+    int available();
+    char read();
+    size_t write(char c);
+    void stop();
 };
 
 
@@ -39,62 +25,50 @@ class WiFiServer {
     gCTcpIp tcp;
     int _port;
 public:
-    WiFiServer(int port) {
-        _port = port;
-    }
-    void begin() {
-        tcp.tcp_server(_port, 5, false);
-    }
+    WiFiServer(int port);
+    void begin();
 
-    WiFiClient available() {
-        gCTcpIp ip = tcp.accept_connection();
-        return WiFiClient(ip);
-    }
-
-
+    WiFiClient available();
 };
 
 const int WL_CONNECTED = 1;
 const int WIFI_STA = 1111;
 class WiFiClass {
 public:
-    void mode(int md){}
-    void begin(const char * ssid, const char * password) {}
-    int status() {
+    inline void mode(int md){}
+    inline void begin(const char * ssid, const char * password) {}
+    inline int status() {
         return WL_CONNECTED;
     }
-    char * localIP() {
+    inline char * localIP() {
         return "test";
     }
 };
 
-WiFiClass WiFi;
+extern WiFiClass WiFi;
 
 class SerialClass {
 public:
-    void println() {
-        printf("");
+    void println();
+    void write(char c);
+    void println(const char *s);
+    void println(int num);
+    void print(const char * fmt, ...);
+    inline void begin(int num) {}
+    inline bool available() {
+        return false;
     }
-    void println(const char *s) {
-        printf("%s\n",s);
-    }
-    void println(int num) {
-        printf("%i\n",num);
-    }
-    void print(const char * fmt, ...) {
-        va_list args;
-        char buf[1000];
-        va_start(args, fmt);
-        vsnprintf(buf, sizeof(buf), fmt, args);
-        va_end(args);
-        printf(buf);
-    }
-    void begin(int num) {}
+    inline int read() { return 0; }
 };
 
-SerialClass Serial;
+extern SerialClass Serial;
 
 
-void delay(int ms) {
-    Sleep(ms);
-}
+void delay(int ms);
+
+
+const int INPUT_PULLUP = 1;
+void pinMode(int key, int mode);
+
+void setup();
+void loop();
