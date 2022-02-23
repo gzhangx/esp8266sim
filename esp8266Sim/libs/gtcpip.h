@@ -45,6 +45,7 @@ protected:
 	static char proxy_addr[64];	//for proxy use
 	static int proxy_port;
 
+    static bool isInited;
     static void raiseError(const char * msg);
 public:
 	gCTcpIp(SOCKET skt):m_sockfd(skt){
@@ -93,7 +94,7 @@ public:
 
 	static int de_init();
 	//windows specific
-	static void init(void);
+	static bool init(void);
 	
 
 	void set_socket_timeout(int timeout);

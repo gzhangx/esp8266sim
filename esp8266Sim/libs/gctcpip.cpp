@@ -22,6 +22,7 @@
 #include "stdafx.h"
 #pragma comment(lib, "Ws2_32.lib")
 
+bool gCTcpIp::isInited = false;
 void gCTcpIp::raiseError(const char * msg) {
     printf(msg);
 }
@@ -35,12 +36,17 @@ void gCTcpIp::raiseError(const char * msg) {
 		return WSACleanup();
 	}
 	//windows specific
-	void gCTcpIp::init(void){
+	bool gCTcpIp::init(void){
+        if (isInited) return true;
 		WORD wVersionRequested; 
 		WSADATA wsaData; 
 		wVersionRequested = MAKEWORD(1, 1); 
-		if(WSAStartup(wVersionRequested, &wsaData)!=0)
+        if (WSAStartup(wVersionRequested, &wsaData) != 0) {
             raiseError("Can't init windows socket");
+            return false;
+        }
+        isInited = true;
+        return true;
 	}
 
 	void gCTcpIp::set_socket_timeout(int timeout){
@@ -62,6 +68,7 @@ void gCTcpIp::raiseError(const char * msg) {
 
     bool gCTcpIp::tcp_client(const char *serv_ip, int port, int time_outs, int time_outus, u_long nblock,
         long connection_break_tm) {
+        init();
         struct sockaddr_in srv_addr;
         struct sockaddr_in cli_addr;
         struct hostent *host;
