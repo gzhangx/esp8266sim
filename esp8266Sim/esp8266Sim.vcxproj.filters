@@ -30,6 +30,9 @@
     <ClInclude Include="libs\gtcpip.h">
       <Filter>Source Files\libs</Filter>
     </ClInclude>
+    <ClInclude Include="ESP8266WiFi.h">
+      <Filter>Source Files\libs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
