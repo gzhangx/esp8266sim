@@ -47,7 +47,7 @@ protected:
     bool _connected;
 public:
 	gCTcpIp(SOCKET skt):m_sockfd(skt){
-        _connected = true;
+        _connected = skt != INVALID_SOCKET;
 	}
 
     bool connected() {
