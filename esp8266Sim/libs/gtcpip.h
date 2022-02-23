@@ -40,10 +40,7 @@ public:
 class GANG_DLL_EXPORT gCTcpIp:public gCStreamFile{
 protected:
 	SOCKET m_sockfd;
-	//gCLockSem m_socket_sem;	//protect against socket open and close
-
-	static char proxy_addr[64];	//for proxy use
-	static int proxy_port;
+	//gCLockSem m_socket_sem;	//protect against socket open and close	
 
     static bool isInited;
     static void raiseError(const char * msg);
@@ -57,6 +54,12 @@ public:
 		//m_socket_sem.GSignal();
 	}
 
+    bool valid() {
+        return (int)m_sockfd > 0;
+    }
+    int debug() {
+        return m_sockfd;
+    }
 	operator SOCKET(){
 		//m_socket_sem.GWait();
 		SOCKET skt=m_sockfd;
@@ -175,9 +178,9 @@ public:
 	//struct hostent *name2addr(char *ip,const int iplen,const char *hostname);
   ///static std::string name2IpAddr(const std::string hostname);
 
-	bool tcp_server(int *port,int backlog=5);
+	bool tcp_server(int *port,int backlog=5, bool blocking=true);
 
-	bool tcp_server(int port,int backlog=5);
+	bool tcp_server(int port,int backlog=5, bool blocking=true);
 
 		//nblock=0 for block, =1 for block
 	//return 0 on success

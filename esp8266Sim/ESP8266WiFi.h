@@ -2,13 +2,20 @@
 #include "libs\gtcpip.h"
 class WiFiServer {
     gCTcpIp tcp;
+    int _port;
 public:
     WiFiServer(int port) {
-        tcp.tcp_server(port);
+        _port = port;        
     }
     void begin() {
-
+        tcp.tcp_server(_port, 5, false);
     }
+
+    gCTcpIp available() {
+        return tcp.accept_connection();
+    }
+
+
 };
 
 
@@ -53,4 +60,6 @@ public:
 SerialClass Serial;
 
 
-void delay(int ms) {}
+void delay(int ms) {
+    Sleep(ms);
+}

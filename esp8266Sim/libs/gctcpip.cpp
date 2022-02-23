@@ -294,7 +294,7 @@ void gCTcpIp::raiseError(const char * msg) {
     
 
 
-	bool gCTcpIp::tcp_server(int *port,int backlog){
+	bool gCTcpIp::tcp_server(int *port,int backlog, bool blocking){
 		struct sockaddr_in srv_addr;
 
 		memset((char*)&srv_addr,0, sizeof(srv_addr));
@@ -335,11 +335,18 @@ void gCTcpIp::raiseError(const char * msg) {
             raiseError("Server: error listen");
             return false;
 		}
+
+        //int status = fcntl(m_sockfd, F_SETFL, fcntl(m_sockfd, F_GETFL, 0) | O_NONBLOCK);
+        unsigned long mode = blocking ? 0 : 1;
+        if (ioctlsocket(m_sockfd, FIONBIO, &mode) != 0) {
+            raiseError("can't make it nonblocking");
+        }
+        
         return true;
 	}
 
-	bool gCTcpIp::tcp_server(int port,int backlog){
-		return tcp_server(&port,backlog);
+	bool gCTcpIp::tcp_server(int port,int backlog, bool blocking){
+		return tcp_server(&port,backlog, blocking);
 	}
 
 		//nblock=0 for block, =1 for block
