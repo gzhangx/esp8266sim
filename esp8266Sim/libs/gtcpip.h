@@ -44,9 +44,15 @@ protected:
 
     static bool isInited;
     static void raiseError(const char * msg);
+    bool _connected;
 public:
 	gCTcpIp(SOCKET skt):m_sockfd(skt){
+        _connected = true;
 	}
+
+    bool connected() {
+        return valid() && _connected;
+    }
 
 	void operator=(gCTcpIp &tcp){
 		//m_socket_sem.GWait();
@@ -54,9 +60,7 @@ public:
 		//m_socket_sem.GSignal();
 	}
 
-    bool valid() {
-        return (int)m_sockfd > 0;
-    }
+
     int debug() {
         return m_sockfd;
     }
@@ -88,7 +92,7 @@ public:
 		//m_socket_sem.GSignal();
 	}
 
-	BOOL valid() const {return m_sockfd!=INVALID_SOCKET;}
+	bool valid() const {return m_sockfd!=INVALID_SOCKET;}
 
 	gCTcpIp():m_sockfd(INVALID_SOCKET){
 	}
@@ -211,84 +215,6 @@ public:
 };
 
 
-
-class gTcpBuf:public gCTcpIp{
-	int bufsize;
-	char *tcpbuf;
-	int numbytes;	//bytes available in tcpbuf
-	int bytesout;	//bytes been got by use but not flashed out from buf yet
-public:
-	gTcpBuf(){
-		numbytes=bytesout=0;
-
-		bufsize=512;
-		tcpbuf=new char[bufsize];		
-	}
-	
-	BOOL set_size(int newsize){
-		char *tmpbuf=new char[newsize];
-		if(tmpbuf==NULL)return FALSE;
-		delete tcpbuf;
-		tcpbuf=tmpbuf;
-		bufsize=newsize;
-		return TRUE;
-	}
-	~gTcpBuf(){
-		if(tcpbuf)delete tcpbuf;
-	}
-
-	int get_tcp_buf_size(){
-		return numbytes-bytesout;
-	}
-
-	int bufd_recv(char *buf,int size){
-		//clear out previous buffer content
-		if(bytesout)numbytes-=bytesout;
-        if (numbytes < 0) return -1;
-		if(bytesout){
-			for(int i=0;i<numbytes;i++){
-				tcpbuf[i]=tcpbuf[bytesout+i];
-			}
-			bytesout=0;
-		}
-		//at this point tcpbuf contain only bytes that
-		//has not go to the user yet
-
-		//if required size is less than cached bytes
-		if(size<=numbytes){
-			memcpy(buf,tcpbuf,size);
-			bytesout=size;
-			return size;
-		}
-
-		//make sure we are not out of bound
-		if(size>bufsize)size=bufsize;
-		int recvbytes=recv(tcpbuf+numbytes,size-numbytes);
-		if(recvbytes>0){
-			numbytes+=recvbytes;
-			bytesout=(size<=numbytes)?size:numbytes;
-			memcpy(buf,tcpbuf,bytesout);
-			return bytesout;
-		}else if(numbytes){
-			//on disconnect, flash the rest if any
-			memcpy(buf,tcpbuf,numbytes);
-			bytesout=numbytes;
-			return numbytes;
-		}
-		return recvbytes;
-	}
-	int unrecv(int size){
-		if(bytesout>=size){
-			bytesout-=size;
-			return size;
-		}else{
-			size=bytesout;
-			bytesout=0;
-		}
-		return size;	//if size is too  big, return bytesout
-				//see else part!!
-	}
-};
 
 #endif
 

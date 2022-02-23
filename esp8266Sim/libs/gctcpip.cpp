@@ -189,6 +189,7 @@ void gCTcpIp::raiseError(const char * msg) {
 			//if(res<0)return res;
             if (res < 0) {
                 //throw gTcp_error_str("Socket closed", ERR_SOCKET_CLOSED);
+                _connected = false;
                 raiseError("sendAll socket closed");
                 return false;
             }
@@ -208,6 +209,7 @@ void gCTcpIp::raiseError(const char * msg) {
             if (res <= 0)	//return res;
             {
                 //throw gTcp_error_str("Socket closed",ERR_SOCKET_CLOSED);
+                _connected = false;
                 raiseError("receAll socket closed");
                 return false;
             }
@@ -228,6 +230,7 @@ void gCTcpIp::raiseError(const char * msg) {
 				writen=recv(buf,left);
 				if(writen<=0){
 					//throw gTcp_error_str("Socket err on recv",ERR_SOCKET_CLOSED);
+                    _connected = false;
                     raiseError("receAll socket receive error");
                     return false;
 				}
@@ -237,11 +240,13 @@ void gCTcpIp::raiseError(const char * msg) {
 				time(&now);
 				if( (now-when)>timeout ){
 					//throw gTcp_error_str("socket recv timeout",ERR_SOCKET_TIMEOUT);
+                    _connected = false;
                     raiseError("receAll timeout");
                     return false;
 				}
 			}else{
 				//throw gTcp_error_str("socket recv timeout",ERR_SOCKET_TIMEOUT);
+                _connected = false;
                 raiseError("receAll timeout");
                 return false;
 			}
@@ -257,6 +262,7 @@ void gCTcpIp::raiseError(const char * msg) {
 				writen=recv(buf,left);
 				if(writen<=0){
 					//throw gTcp_error_str("Socket err on recv",ERR_SOCKET_CLOSED);
+                    _connected = false;
                     raiseError("recvAll: can't receive");
                     return false;
 				}
@@ -264,6 +270,7 @@ void gCTcpIp::raiseError(const char * msg) {
 				buf+=writen;
 			}else{
 				//throw gTcp_error_str("Socket recv timeout",ERR_SOCKET_TIMEOUT);
+                _connected = false;
                 raiseError("Socket recvTimeout");
                 return false;
 			}
@@ -283,6 +290,7 @@ void gCTcpIp::raiseError(const char * msg) {
 		len=recv(buf,len);
 		if(len<=0){
 			buf[0]=0;
+            _connected = false;
 			raiseError("Socket closed");
             return len;
 		}

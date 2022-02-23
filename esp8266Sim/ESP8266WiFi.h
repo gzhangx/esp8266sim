@@ -1,23 +1,58 @@
 #pragma once
 #include "libs\gtcpip.h"
+
+
+const int RDBUFMAX = 512;
+class WiFiClient {
+    gCTcpIp tcp;
+    char buf[RDBUFMAX];
+    int curPos = 0;
+    int curLen = 0;
+public:
+    WiFiClient(){
+        curPos = 0;
+        curLen = 0;
+    }
+    WiFiClient(gCTcpIp & t) {
+        tcp = t;
+        curPos = 0;
+        curLen = 0;
+    }
+    bool connected() {
+        return tcp.connected();
+    }
+
+    bool available() {
+        if (curLen <= 0 || curPos >= curLen) {
+            curLen = tcp.recv(buf, RDBUFMAX);
+            curPos = 0;
+        }
+        return curPos < curLen;
+    }
+    char read() {        
+        return buf[curPos++];
+    }
+};
+
+
 class WiFiServer {
     gCTcpIp tcp;
     int _port;
 public:
     WiFiServer(int port) {
-        _port = port;        
+        _port = port;
     }
     void begin() {
         tcp.tcp_server(_port, 5, false);
     }
 
-    gCTcpIp available() {
-        return tcp.accept_connection();
+    WiFiClient available() {
+        gCTcpIp ip = tcp.accept_connection();
+        return WiFiClient(ip);
     }
 
 
 };
-
 
 const int WL_CONNECTED = 1;
 const int WIFI_STA = 1111;
