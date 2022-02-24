@@ -22,13 +22,13 @@ const int CMDSIZE = 64;
 typedef enum {
     SND_INIT,
     SND_RSP,
+    SND_BODY,
     SND_DONE,
 } SndState;
 struct SendInfo {
     char buf[BUFSIZE];
     SndState state = SND_INIT;
-    bool inProgress = true;
-    bool needParseRsp = false;
+    bool needParseRsp = true;
     long lastActionTime = 0;
     bool inBody = false;
     int curPos = 0;
@@ -55,26 +55,43 @@ void checkAction(SendInfo * info) {
     //printf("debugremove trying to read\n");
     if (info->needParseRsp) {
         if (outClient.available()) {
-            char c = static_cast<char>(outClient.read());
-            info->buf[info->curPos++] = c;
-            info->buf[info->curPos] = 0;
-            if (c == '\n') {
+            while (outClient.available()) {
+                char c = static_cast<char>(outClient.read());
+                info->buf[info->curPos++] = c;
                 info->buf[info->curPos] = 0;
-                printf(info->buf);
-                info->buf[0] = 0;
-                info->curPos = 0;
+                if (c == '\n') {
+                    info->buf[info->curPos] = 0;
+                    Serial.print(info->buf);
+                    info->buf[0] = 0;
+                    info->curPos = 0;
+                    if (info->curPos == 2) {
+                        info->state = SND_BODY;
+                    }
+                }
+                delay(0);
             }
         }
-        else {
+        {
             if (info->buf[0] != 0) {
-                printf(info->buf);
+                Serial.println(info->buf);
+                if (info->state == SND_BODY) {
+                    Serial.println("parse done");
+                    info->state = SND_DONE;
+                    outClient.stop();
+                }
             }
         }
+    }
+    else {
+        info->state = SND_DONE;
+        outClient.stop();
     }
 }
 
 SendInfo sndState;
 
+long lastCheckTime = millis();
+bool registered = false;
 //=======================================================================
 //                    Power on setup
 //=======================================================================
@@ -105,15 +122,25 @@ void setup()
     Serial.print("Open Telnet and connect to IP:");
     Serial.print(WiFi.localIP());
     Serial.print(" on port ");
-    Serial.println(port);
-    fillRegisterCmd(sndState.buf, "testip");
+    Serial.println(port);    
 }
 
 void loop()
 {        
-    sndState.needParseRsp = true;
+    //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
+    if (!registered) {
+        fillRegisterCmd(sndState.buf, "testip");
+        registered = true;
+    }
+    Serial.print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
+    if (millis() - lastCheckTime > 1000) {
+        Serial.print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
+        lastCheckTime = millis();
+        snprintf(sndState.buf, BUFSIZE, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());
+        sndState.state = SND_INIT;
+    }
     checkAction(&sndState);
     if (client) {
         if (client.connected())
@@ -134,6 +161,9 @@ void loop()
         }
         client.stop();
         Serial.println("Client disconnected");
+    }
+    else {
+       delay(500);
     }
 
     
