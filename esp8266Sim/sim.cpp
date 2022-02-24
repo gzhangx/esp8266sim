@@ -36,7 +36,7 @@ struct SendInfo {
 };
 
 void fillRegisterCmd(char * buf, const char *ip) {
-    sprintf(buf, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);    
+    snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
 void checkAction(SendInfo * info) {
     if (info->state == SND_DONE) return;
