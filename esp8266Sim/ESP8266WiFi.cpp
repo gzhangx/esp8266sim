@@ -1,5 +1,5 @@
 #include "stdafx.h"
-
+//#include<time.h>
  WiFiClass WiFi;
  SerialClass Serial;
 
@@ -26,18 +26,31 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
         return tcp.connected();
     }
 
+    bool WiFiClient::connect(const char * host, int port) {
+        curPos = 0;
+        curLen = 0;
+        return tcp.tcp_client(host, port);
+    }
+
     int WiFiClient::available() {
+        if (!tcp.valid()) return 0;
         if (curLen <= 0 || curPos >= curLen) {
             curLen = tcp.recv(buf, RDBUFMAX);
+            if (curLen == 0) {
+                tcp.close();
+            }
             curPos = 0;
         }
         return curLen - curPos; // curPos < curLen;
     }
-    char WiFiClient::read() {
-        return buf[curPos++];
+    int WiFiClient::read() {
+        return (int)buf[curPos++];
     }
     size_t WiFiClient::write(char c) {
         return tcp.sendbyte(c);
+    }
+    size_t WiFiClient::write(const uint8_t *buf, size_t size) {
+        return tcp.send(buf, size);
     }
     void WiFiClient::stop() {
         tcp.close();
@@ -82,3 +95,9 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
         printf(buf);
     }
   
+
+
+
+    long millis() {
+        return clock();
+    }

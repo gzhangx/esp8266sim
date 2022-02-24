@@ -194,7 +194,7 @@ public:
 	
 	int last_sock_error();
 	
-	bool tcp_client(const char *ip,const int port,int time_outs=10,int time_outus=0,u_long nblock=1,
+	bool tcp_client(const char *ip,const int port,int time_outs=10,int time_outus=0,u_long nblock=0,
 	   long connection_break_tm=100000);
 
 

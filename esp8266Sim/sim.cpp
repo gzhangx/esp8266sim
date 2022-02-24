@@ -10,6 +10,71 @@ const char *ssid = "---------";  //Enter your wifi SSID
 const char *password = "--------";  //Enter your wifi Password
 
 int count = 0;
+
+//=======================================================================
+//                    Loop
+//=======================================================================
+
+WiFiClient outClient;
+const int BUFSIZE = 1024;
+const int CMDSIZE = 64;
+
+typedef enum {
+    SND_INIT,
+    SND_RSP,
+    SND_DONE,
+} SndState;
+struct SendInfo {
+    char buf[BUFSIZE];
+    SndState state = SND_INIT;
+    bool inProgress = true;
+    bool needParseRsp = false;
+    long lastActionTime = 0;
+    bool inBody = false;
+    int curPos = 0;
+    char rsp[BUFSIZE];
+};
+
+void fillRegisterCmd(char * buf, const char *ip) {
+    sprintf(buf, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);    
+}
+void checkAction(SendInfo * info) {
+    if (info->state == SND_DONE) return;
+    if (!outClient.connected() && info->state == SND_INIT) {
+        outClient.connect("192.168.1.41", 8101);
+        outClient.write((uint8_t*)info->buf, strlen(info->buf));
+        info->state = SND_RSP;
+        info->lastActionTime = millis();
+        info->rsp[0] = 0;
+        info->inBody = false;
+        info->curPos = 0;
+    }    
+    
+    if (!outClient.connected()) return;
+
+    //printf("debugremove trying to read\n");
+    if (info->needParseRsp) {
+        if (outClient.available()) {
+            char c = static_cast<char>(outClient.read());
+            info->buf[info->curPos++] = c;
+            info->buf[info->curPos] = 0;
+            if (c == '\n') {
+                info->buf[info->curPos] = 0;
+                printf(info->buf);
+                info->buf[0] = 0;
+                info->curPos = 0;
+            }
+        }
+        else {
+            if (info->buf[0] != 0) {
+                printf(info->buf);
+            }
+        }
+    }
+}
+
+SendInfo sndState;
+
 //=======================================================================
 //                    Power on setup
 //=======================================================================
@@ -41,15 +106,15 @@ void setup()
     Serial.print(WiFi.localIP());
     Serial.print(" on port ");
     Serial.println(port);
+    fillRegisterCmd(sndState.buf, "testip");
 }
-//=======================================================================
-//                    Loop
-//=======================================================================
 
 void loop()
-{
+{        
+    sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
+    checkAction(&sndState);
     if (client) {
         if (client.connected())
         {
@@ -70,4 +135,6 @@ void loop()
         client.stop();
         Serial.println("Client disconnected");
     }
+
+    
 }

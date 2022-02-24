@@ -17,6 +17,7 @@ int main()
     WiFiClient cc(ip);
     while (cc.available()) {
         printf("%c", cc.read());
+        break;
     }    
 
 

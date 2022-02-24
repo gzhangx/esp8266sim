@@ -14,8 +14,11 @@ public:
     virtual operator bool();
     bool connected();
 
+    bool connect(const char * host, int port);
+
     int available();
-    char read();
+    int read();
+    virtual size_t write(const uint8_t *buf, size_t size);
     size_t write(char c);
     void stop();
 };
@@ -43,6 +46,9 @@ public:
     inline char * localIP() {
         return "test";
     }
+    inline std::string macAddress() {
+        return "testmac";
+    }
 };
 
 extern WiFiClass WiFi;
@@ -55,8 +61,8 @@ public:
     void println(int num);
     void print(const char * fmt, ...);
     inline void begin(int num) {}
-    inline bool available() {
-        return false;
+    inline int available() {
+        return 0;
     }
     inline int read() { return 0; }
 };
@@ -72,3 +78,5 @@ void pinMode(int key, int mode);
 
 void setup();
 void loop();
+
+long millis();

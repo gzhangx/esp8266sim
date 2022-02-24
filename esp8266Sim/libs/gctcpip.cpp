@@ -175,6 +175,7 @@ void gCTcpIp::raiseError(const char * msg) {
                 return false;
             }
         }
+        _connected = true;
         return true;
 
     }
