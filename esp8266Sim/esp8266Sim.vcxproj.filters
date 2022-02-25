@@ -33,6 +33,9 @@
     <ClInclude Include="ESP8266WiFi.h">
       <Filter>Source Files\libs</Filter>
     </ClInclude>
+    <ClInclude Include="CheapStepper.h">
+      <Filter>Source Files\libs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -49,6 +52,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CheapStepper.cpp">
+      <Filter>Source Files\libs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

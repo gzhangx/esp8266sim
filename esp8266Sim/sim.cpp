@@ -11,6 +11,8 @@ const char *password = "--------";  //Enter your wifi Password
 
 int count = 0;
 
+CheapStepper cstepper(D5, D6, D7, D8);
+
 //=======================================================================
 //                    Loop
 //=======================================================================
@@ -106,6 +108,7 @@ bool registered = false;
 //=======================================================================
 void setup()
 {
+    cstepper.setRpm(12);
     Serial.begin(115200);
     //pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
     Serial.println();
@@ -145,6 +148,7 @@ void print(const char * fmt, ...) {
 
 void loop()
 {        
+    cstepper.move(1, 1);
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
