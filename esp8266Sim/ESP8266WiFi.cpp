@@ -50,7 +50,7 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
         return tcp.sendbyte(c);
     }
     size_t WiFiClient::write(const uint8_t *buf, size_t size) {
-        return tcp.send(buf, size);
+        return tcp.send(buf, (int)size);
     }
     void WiFiClient::stop() {
         tcp.close();

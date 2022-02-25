@@ -61,7 +61,7 @@ public:
 	}
 
 
-    int debug() {
+    SOCKET debug() {
         return m_sockfd;
     }
 	operator SOCKET(){

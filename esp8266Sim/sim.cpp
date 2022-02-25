@@ -38,6 +38,14 @@ struct SendInfo {
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
+
+
+void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
+    va_list args;    
+    va_start(args, fmt);
+    vsnprintf(inf.buf, sizeof(inf.buf), fmt, args);
+    va_end(args);    
+}
 void checkAction(SendInfo * info) {
     if (info->state == SND_DONE) return;
     if (!outClient.connected() && info->state == SND_INIT) {
@@ -125,18 +133,28 @@ void setup()
     Serial.println(port);    
 }
 
+void print(const char * fmt, ...) {
+    va_list args;
+    char buf[1000];
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    Serial.print(buf);
+}
+
 void loop()
 {        
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
     if (!registered) {
-        fillRegisterCmd(sndState.buf, "testip");
+        //fillRegisterCmd(sndState.buf, "testip");
+        fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), "testip");
         registered = true;
     }
-    Serial.print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
+    print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
     if (millis() - lastCheckTime > 1000) {
-        Serial.print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
+        print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
         lastCheckTime = millis();
         snprintf(sndState.buf, BUFSIZE, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());
         sndState.state = SND_INIT;
