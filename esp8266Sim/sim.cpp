@@ -45,6 +45,7 @@ void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     va_start(args, fmt);
     vsnprintf(inf.buf, sizeof(inf.buf), fmt, args);
     va_end(args);    
+    inf.state = SND_INIT;
 }
 void checkAction(SendInfo * info) {
     if (info->state == SND_DONE) return;
@@ -156,8 +157,7 @@ void loop()
     if (millis() - lastCheckTime > 1000) {
         print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
         lastCheckTime = millis();
-        snprintf(sndState.buf, BUFSIZE, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());
-        sndState.state = SND_INIT;
+        fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
     }
     checkAction(&sndState);
     if (client) {
