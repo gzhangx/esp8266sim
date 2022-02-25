@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#define SendKey 0  //Button to send data Flash BTN on NodeMCU
+//#define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
 int port = 8888;  //Port number
 WiFiServer server(port);
@@ -98,7 +98,7 @@ bool registered = false;
 void setup()
 {
     Serial.begin(115200);
-    pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
+    //pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
     Serial.println();
 
     WiFi.mode(WIFI_STA);
