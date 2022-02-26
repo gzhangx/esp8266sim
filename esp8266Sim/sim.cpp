@@ -43,8 +43,8 @@ struct SendInfo {
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
+void parseResponse(WiFiClient& client, SendInfo* info);
 
-const int PARTLEN = 20;
 
 void parseSendInfo(SendInfo & info) {
     int who = 0;
@@ -139,39 +139,42 @@ void checkAction(SendInfo * info) {
 
     //printf("debugremove trying to read\n");
     if (info->needParseRsp) {
-        if (outClient.available()) {
-            while (outClient.available()) {
-                char c = static_cast<char>(outClient.read());
-                info->buf[info->curPos++] = c;
-                info->buf[info->curPos] = 0;
-                if (c == '\n') {
-                    info->buf[info->curPos] = 0;
-                    Serial.print(info->buf);
-                    if (info->curPos == 2) {
-                        info->state = SND_BODY;
-                    }
-                    info->buf[0] = 0;
-                    info->curPos = 0;                    
-                }
-                delay(0);
-            }
-        }
-        {
-            if (info->buf[0] != 0) {
-                Serial.println(info->buf);
-                strcpy(info->rsp, info->buf);
-                if (info->state == SND_BODY) {
-                    Serial.println("parse done");
-                    info->state = SND_DONE;
-                    parseAndPrint(*info);
-                    outClient.stop();
-                }
-            }
-        }
+        parseResponse(outClient, info);
     }
     else {
         info->state = SND_DONE;
         outClient.stop();
+    }
+}
+
+void parseResponse(WiFiClient& client, SendInfo* info) {
+    if (client.available()) {
+        while (client.available()) {
+            char c = static_cast<char>(client.read());
+            info->buf[info->curPos++] = c;
+            info->buf[info->curPos] = 0;
+            if (c == '\n') {
+                info->buf[info->curPos] = 0;
+                Serial.print(info->buf);
+                if (info->curPos == 2) {
+                    info->state = SND_BODY;
+                }
+                info->buf[0] = 0;
+                info->curPos = 0;
+            }
+            delay(0);
+        }
+    }
+
+    if (info->buf[0] != 0) {
+        Serial.println(info->buf);
+        strcpy(info->rsp, info->buf);
+        if (info->state == SND_BODY) {
+            Serial.println("parse done");
+            info->state = SND_DONE;
+            parseAndPrint(*info);
+            client.stop();
+        }
     }
 }
 
@@ -248,18 +251,18 @@ void loop()
             Serial.println("Client Connected");
         }
 
-        while (client.connected()) {
-            while (client.available()>0) {
-                // read data from the connected client
-                Serial.write(client.read());
-            }
-            //Send Data to connected client
-            while (Serial.available()>0)
-            {
-                client.write(Serial.read());
-            }
-        }
-        client.stop();
+        //while (client.connected()) {
+        //    while (client.available()>0) {
+        //        Serial.write(client.read());
+        //    }
+        //    while (Serial.available()>0)
+        //    {
+        //        client.write(Serial.read());
+        //    }
+        //}
+        //client.stop();
+        SendInfo srvInf;
+        parseResponse(client, &srvInf);
         Serial.println("Client disconnected");
     }
     else {
