@@ -27,6 +27,7 @@ typedef enum {
     SND_BODY,
     SND_DONE,
 } SndState;
+
 struct SendInfo {
     char buf[BUFSIZE];
     SndState state = SND_INIT;
@@ -34,13 +35,73 @@ struct SendInfo {
     long lastActionTime = 0;
     bool inBody = false;
     int curPos = 0;
-    char rsp[BUFSIZE];
+    char rsp[BUFSIZE];    
+    int cmdPos[CMDSIZE];
 };
 
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
 
+const int PARTLEN = 20;
+
+void parseSendInfo(SendInfo & info) {
+    int who = 0;
+    bool hasCurItem = false;
+    bool nameState = true;
+    int curPos = 0;
+    info.cmdPos[who++] = 0;
+    info.cmdPos[1] = -1;
+    for (int i = 0; i < sizeof(info.rsp); i++) {
+        const char c = info.rsp[i];
+        if (nameState) {
+            if (c == '=' || c=='&' || c==0) {
+                info.cmdPos[who] = i + 1;
+                if (c != '&') nameState = false;                                
+                info.rsp[i] = 0;
+                if (c != '=') {
+                    info.cmdPos[who++] = i;
+                    info.cmdPos[who] = i + 1;
+                }
+                who++;
+                if (c == 0) {
+                    info.cmdPos[who++] = -1;
+                    info.cmdPos[who] = -1;
+                    break;
+                }
+                continue;
+            }
+        }
+        else {
+            if (c == '&' || c == 0) {
+                if (c == 0) {
+                    info.rsp[i] = 0;
+                    info.cmdPos[who++] = -1;
+                    break;
+                }
+                nameState = true;
+                info.cmdPos[who++] = i + 1;
+                info.rsp[i] = 0;
+                continue;
+            }
+        }
+    }
+}
+
+
+void debugTest() {
+    SendInfo info;
+    strcpy(info.rsp, "a=b&cccc=dddd&name=gang&test=2&onlyfirst&onlyeq=&a1&a2");
+    parseSendInfo(info);
+    for (int i = 0; i < sizeof(info.cmdPos); i+=2) {
+        int p1 = info.cmdPos[i];
+        int p2 = info.cmdPos[i+1];
+        if (p1 < 0) break;
+        Serial.println(info.rsp + p1);
+        Serial.println(info.rsp + p2);
+        Serial.println("");
+    }
+}
 
 void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     va_list args;    
@@ -103,6 +164,8 @@ SendInfo sndState;
 
 long lastCheckTime = millis();
 bool registered = false;
+
+
 //=======================================================================
 //                    Power on setup
 //=======================================================================
@@ -154,7 +217,7 @@ void loop()
 
     if (!registered) {
         //fillRegisterCmd(sndState.buf, "testip");
-        fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), "testip");
+        fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), WiFi.localIP());
         registered = true;
     }
     print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);

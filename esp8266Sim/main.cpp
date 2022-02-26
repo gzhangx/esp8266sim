@@ -4,9 +4,11 @@
 #include "stdafx.h"
 #include "ESP8266WiFi.h"
 
-
+void debugTest();
 int main()
 {
+    debugTest();
+    return 0;;
     gCTcpIp ip;
     bool ok = ip.tcp_client("www.google.com", 80);
     printf("connect=%i\n", ok);
