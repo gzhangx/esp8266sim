@@ -178,7 +178,7 @@ void checkAction(SendInfo * info) {
 SendInfo sndState;
 
 long lastCheckTime = millis();
-bool registered = false;
+
 
 
 //=======================================================================
@@ -186,6 +186,7 @@ bool registered = false;
 //=======================================================================
 void setup()
 {
+    delay(500);
     cstepper.setRpm(12);
     Serial.begin(115200);
     //pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
@@ -213,6 +214,10 @@ void setup()
     Serial.print(WiFi.localIP());
     Serial.print(" on port ");
     Serial.println(port);    
+
+    delay(1000);
+    fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), WiFi.localIP());
+    checkAction(&sndState);
 }
 
 void print(const char * fmt, ...) {
@@ -230,11 +235,6 @@ void loop()
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
-    if (!registered) {
-        //fillRegisterCmd(sndState.buf, "testip");
-        fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), WiFi.localIP());
-        registered = true;
-    }
     print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
     if (millis() - lastCheckTime > 1000) {
         print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
