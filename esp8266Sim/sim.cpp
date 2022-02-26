@@ -8,6 +8,7 @@
 const char *ssid = "---------";  //Enter your wifi SSID
 const char *password = "--------";  //Enter your wifi Password
 
+const bool SERIAL_DEBUG = false;
 int port = 8888;  //Port number
 WiFiServer server(port);
 int count = 0;
@@ -40,6 +41,13 @@ struct SendInfo {
     int cmdPos[CMDSIZE];
 };
 
+
+struct MotorCmd {
+    int rpm = 0;
+    int dir;
+    int amount;
+    bool enabled;
+};
 void print(const char * fmt, ...) {
     va_list args;
     char buf[1000];
@@ -113,21 +121,52 @@ void debugTest() {
     }
 }
 
+void runMotor(MotorCmd & cmd) {
+    if (cmd.amount <= 0) return;
+    if (cmd.rpm) {
+        cstepper.setRpm(cmd.rpm);
+    }
+    int amount = cmd.amount;
+    while (amount--) {
+        cstepper.move(cmd.dir, 1);
+    }
+}
 
-void loopReceivedCommands(SendInfo & info) {
+void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
+    mcmd.rpm = 0;
+    mcmd.amount = 0;
+    mcmd.dir = 0;
     for (int i = 0; i < sizeof(info.cmdPos); i += 2) {
         int p1 = info.cmdPos[i];
         int p2 = info.cmdPos[i + 1];
         if (p1 < 0 || p2 < 0) break;
         char * cmd = info.rsp + p1;
         char * val = info.rsp + p2;
-        print("'%s': '%s'\n", cmd, val);
-        if (strcmp(cmd, "rpm")) {
+        if (SERIAL_DEBUG) print("'%s': '%s'\n", cmd, val);
+        if (!strcmp(cmd, "rpm")) {
             int rpm = atoi(val);
+            if (rpm <= 0) rpm = 1;
             print("resolved=%s=%i\n", cmd, rpm);
+            mcmd.rpm = rpm;
         }
-        Serial.println("");
+        else if (!strcmp(cmd, "dir")) {
+            int dir = atoi(val);
+            print("resolved=%s=%i\n", cmd, dir);
+            mcmd.dir = dir;
+        }
+        else if (!strcmp(cmd, "amount")) {
+            int amount = atoi(val);
+            print("resolved=%s=%i\n", cmd, amount);
+            mcmd.amount = amount;
+        }
+        else if (!strcmp(cmd, "enabled")) {
+            int enabled = atoi(val);
+            print("resolved=%s=%i\n", cmd, enabled);
+            mcmd.enabled = (bool)(enabled!=0);
+        }
     }
+
+    runMotor(mcmd);
 }
 
 void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
@@ -137,8 +176,8 @@ void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     va_end(args);    
     inf.state = SND_INIT;
 }
-void checkAction(SendInfo * info) {
-    if (info->state == SND_DONE) return;
+bool checkAction(SendInfo * info) {
+    if (info->state == SND_DONE) return false;
     if (!outClient.connected() && info->state == SND_INIT) {
         outClient.connect("192.168.1.41", 8101);
         outClient.write((uint8_t*)info->buf, strlen(info->buf));
@@ -149,16 +188,18 @@ void checkAction(SendInfo * info) {
         info->curPos = 0;
     }    
     
-    if (!outClient.connected()) return;
+    if (!outClient.connected()) return false;
 
     //printf("debugremove trying to read\n");
     if (info->needParseRsp) {
         parseResponse(outClient, info);
+        return true;
     }
     else {
         info->state = SND_DONE;
         outClient.stop();
     }
+    return false;
 }
 
 void parseResponse(WiFiClient& client, SendInfo* info) {
@@ -169,7 +210,7 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
             info->buf[info->curPos] = 0;
             if (c == '\n') {
                 info->buf[info->curPos] = 0;
-                Serial.print(info->buf);
+                //Serial.print(info->buf);
                 if (info->curPos == 2) {
                     info->state = SND_BODY;
                 }
@@ -181,13 +222,12 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
     }
 
     if (info->buf[0] != 0) {
-        Serial.println(info->buf);
+        //Serial.println(info->buf);
         strcpy(info->rsp, info->buf);
         if (info->state == SND_BODY) {
-            Serial.println("parse done");
+            if (SERIAL_DEBUG) Serial.println("parse done");
             info->state = SND_DONE;
-            parseSendInfo(*info);
-            loopReceivedCommands(*info);
+            parseSendInfo(*info);            
             client.stop();
         }
     }
@@ -250,15 +290,17 @@ void loop()
     const long timeDiff = curMills - lastCheckTime;
     //print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
     if (millis() - lastCheckTime > 10000) {
-        print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
+        if (SERIAL_DEBUG) print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
         lastCheckTime = curMills ;
         fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
     }
-    //checkAction(&sndState);
+    // if (checkAction(&sndState)) {
+    // loopReceivedCommands(sndState);
+    //}
     if (client) {
         if (client.connected())
         {
-            Serial.println("Client Connected");
+            if (SERIAL_DEBUG) Serial.println("Client Connected");
         }
 
         //while (client.connected()) {
@@ -272,9 +314,10 @@ void loop()
         //}
         //client.stop();
         SendInfo srvInf;
+        MotorCmd mcmd;
         parseResponse(client, &srvInf);
-        loopReceivedCommands(srvInf);
-        Serial.println("Client disconnected");
+        loopReceivedCommands(srvInf, mcmd);
+        if (SERIAL_DEBUG) Serial.println("Client disconnected");
     }
     else {
        delay(500);

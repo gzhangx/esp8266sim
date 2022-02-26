@@ -34,12 +34,14 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
 
     int WiFiClient::available() {
         if (!tcp.valid()) return 0;
+        if (curLen < 0) return 0;
         if (curLen <= 0 || curPos >= curLen) {
             curLen = tcp.recv(buf, RDBUFMAX);
+            curPos = 0;
             if (curLen <= 0) {
                 tcp.close();
-            }
-            curPos = 0;
+                return 0;
+            }            
         }
         return curLen - curPos; // curPos < curLen;
     }
