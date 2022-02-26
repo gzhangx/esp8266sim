@@ -104,8 +104,8 @@ void debugTest() {
     }
 }
 
-void parseAndPrint(SendInfo & info) {
-    parseSendInfo(info);
+
+void loopReceivedCommands(SendInfo & info) {
     for (int i = 0; i < sizeof(info.cmdPos); i += 2) {
         int p1 = info.cmdPos[i];
         int p2 = info.cmdPos[i + 1];
@@ -172,7 +172,8 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
         if (info->state == SND_BODY) {
             Serial.println("parse done");
             info->state = SND_DONE;
-            parseAndPrint(*info);
+            parseSendInfo(*info);
+            loopReceivedCommands(*info);
             client.stop();
         }
     }
@@ -238,10 +239,12 @@ void loop()
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
-    print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
-    if (millis() - lastCheckTime > 1000) {
-        print("%l %l %i\n", millis(), lastCheckTime, millis() - lastCheckTime);
-        lastCheckTime = millis();
+    const long curMills = millis();
+    const long timeDiff = curMills - lastCheckTime;
+    //print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
+    if (millis() - lastCheckTime > 10000) {
+        print("%l %l %i\n", curMills, lastCheckTime, timeDiff);
+        lastCheckTime = curMills ;
         fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
     }
     checkAction(&sndState);
@@ -263,6 +266,7 @@ void loop()
         //client.stop();
         SendInfo srvInf;
         parseResponse(client, &srvInf);
+        loopReceivedCommands(srvInf);
         Serial.println("Client disconnected");
     }
     else {
