@@ -2,13 +2,14 @@
 
 //#define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
-int port = 8888;  //Port number
-WiFiServer server(port);
+
 
 //Server connect to WiFi Network
 const char *ssid = "---------";  //Enter your wifi SSID
 const char *password = "--------";  //Enter your wifi Password
 
+int port = 8888;  //Port number
+WiFiServer server(port);
 int count = 0;
 
 CheapStepper cstepper(D5, D6, D7, D8);
