@@ -36,7 +36,7 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
         if (!tcp.valid()) return 0;
         if (curLen <= 0 || curPos >= curLen) {
             curLen = tcp.recv(buf, RDBUFMAX);
-            if (curLen == 0) {
+            if (curLen <= 0) {
                 tcp.close();
             }
             curPos = 0;

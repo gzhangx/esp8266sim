@@ -40,6 +40,15 @@ struct SendInfo {
     int cmdPos[CMDSIZE];
 };
 
+void print(const char * fmt, ...) {
+    va_list args;
+    char buf[1000];
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    Serial.print(buf);
+}
+
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
@@ -109,9 +118,14 @@ void loopReceivedCommands(SendInfo & info) {
     for (int i = 0; i < sizeof(info.cmdPos); i += 2) {
         int p1 = info.cmdPos[i];
         int p2 = info.cmdPos[i + 1];
-        if (p1 < 0) break;
-        Serial.println(info.rsp + p1);
-        Serial.println(info.rsp + p2);
+        if (p1 < 0 || p2 < 0) break;
+        char * cmd = info.rsp + p1;
+        char * val = info.rsp + p2;
+        print("'%s': '%s'\n", cmd, val);
+        if (strcmp(cmd, "rpm")) {
+            int rpm = atoi(val);
+            print("resolved=%s=%i\n", cmd, rpm);
+        }
         Serial.println("");
     }
 }
@@ -224,14 +238,7 @@ void setup()
     checkAction(&sndState);
 }
 
-void print(const char * fmt, ...) {
-    va_list args;
-    char buf[1000];
-    va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    Serial.print(buf);
-}
+
 
 void loop()
 {        
@@ -247,7 +254,7 @@ void loop()
         lastCheckTime = curMills ;
         fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
     }
-    checkAction(&sndState);
+    //checkAction(&sndState);
     if (client) {
         if (client.connected())
         {
