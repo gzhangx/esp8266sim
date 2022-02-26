@@ -104,6 +104,18 @@ void debugTest() {
     }
 }
 
+void parseAndPrint(SendInfo & info) {
+    parseSendInfo(info);
+    for (int i = 0; i < sizeof(info.cmdPos); i += 2) {
+        int p1 = info.cmdPos[i];
+        int p2 = info.cmdPos[i + 1];
+        if (p1 < 0) break;
+        Serial.println(info.rsp + p1);
+        Serial.println(info.rsp + p2);
+        Serial.println("");
+    }
+}
+
 void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     va_list args;    
     va_start(args, fmt);
@@ -135,11 +147,11 @@ void checkAction(SendInfo * info) {
                 if (c == '\n') {
                     info->buf[info->curPos] = 0;
                     Serial.print(info->buf);
-                    info->buf[0] = 0;
-                    info->curPos = 0;
                     if (info->curPos == 2) {
                         info->state = SND_BODY;
                     }
+                    info->buf[0] = 0;
+                    info->curPos = 0;                    
                 }
                 delay(0);
             }
@@ -147,9 +159,11 @@ void checkAction(SendInfo * info) {
         {
             if (info->buf[0] != 0) {
                 Serial.println(info->buf);
+                strcpy(info->rsp, info->buf);
                 if (info->state == SND_BODY) {
                     Serial.println("parse done");
                     info->state = SND_DONE;
+                    parseAndPrint(*info);
                     outClient.stop();
                 }
             }

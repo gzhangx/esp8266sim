@@ -7,8 +7,8 @@
 void debugTest();
 int main()
 {
-    debugTest();
-    return 0;;
+    //debugTest();
+    //return 0;;
     gCTcpIp ip;
     bool ok = ip.tcp_client("www.google.com", 80);
     printf("connect=%i\n", ok);
