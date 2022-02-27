@@ -274,7 +274,9 @@ void setup()
     Serial.println(port);    
 
     delay(1000);
-    fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), WiFi.localIP());
+    char buf[512];
+    sprintf(buf, "%i.%i.%i.%i", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), buf);
     checkAction(&sndState);
 }
 
