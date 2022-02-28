@@ -1,12 +1,18 @@
 #include "stdafx.h"
 
+//#include <ESP8266WiFi.h>
+//#include <gglocal.h>
 //#define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
+#ifndef STASSID
+#define STASSID1 "test"
+#define STAPSK1  "test"
 
+#endif
 
 //Server connect to WiFi Network
-const char *ssid = "---------";  //Enter your wifi SSID
-const char *password = "--------";  //Enter your wifi Password
+const char* ssid = STASSID;
+const char* password = STAPSK;
 
 const bool SERIAL_DEBUG = false;
 int port = 8888;  //Port number
@@ -247,6 +253,7 @@ void setup()
     delay(500);
     cstepper.setRpm(12);
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
     //pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
     Serial.println();
 
