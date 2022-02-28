@@ -65,6 +65,7 @@ public:
         return 0;
     }
     inline int read() { return 0; }
+    inline void setDebugOutput(bool b) {}
 };
 
 extern SerialClass Serial;

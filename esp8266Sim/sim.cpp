@@ -1,12 +1,12 @@
 #include "stdafx.h"
-
+#include "CheapStepper.h"
 //#include <ESP8266WiFi.h>
 //#include <gglocal.h>
 //#define SendKey 0  //Button to send data Flash BTN on NodeMCU
 
 #ifndef STASSID
-#define STASSID1 "test"
-#define STAPSK1  "test"
+#define STASSID "test"
+#define STAPSK  "test"
 
 #endif
 
