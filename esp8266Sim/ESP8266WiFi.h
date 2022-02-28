@@ -55,7 +55,6 @@ extern WiFiClass WiFi;
 
 class SerialClass {
 public:
-    void println();
     void write(char c);
     void println(const char *s);
     void println(int num);

@@ -75,10 +75,6 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
 
 
 
-
-    void SerialClass::println() {
-        printf("");
-    }
     void SerialClass::write(char c) {
         printf("%c", c);
     }

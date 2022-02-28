@@ -14,7 +14,7 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-const bool SERIAL_DEBUG = false;
+const bool SERIAL_DEBUG = true;
 int port = 8888;  //Port number
 WiFiServer server(port);
 int count = 0;
@@ -183,9 +183,13 @@ void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     inf.state = SND_INIT;
 }
 bool checkAction(SendInfo * info) {
-    if (info->state == SND_DONE) return false;
+    if (info->state == SND_DONE) {
+        if (SERIAL_DEBUG) Serial.println("checkAction ignored sd-done");
+        return false;
+    }
     if (!outClient.connected() && info->state == SND_INIT) {
         outClient.connect("192.168.1.41", 8101);
+        if (SERIAL_DEBUG) Serial.print(info->buf);
         outClient.write((uint8_t*)info->buf, strlen(info->buf));
         info->state = SND_RSP;
         info->lastActionTime = millis();
@@ -194,7 +198,10 @@ bool checkAction(SendInfo * info) {
         info->curPos = 0;
     }    
     
-    if (!outClient.connected()) return false;
+    if (!outClient.connected()) {
+        if (SERIAL_DEBUG) Serial.println("!!!!! check action ignored, not connected");
+        return false;
+    }
 
     //printf("debugremove trying to read\n");
     if (info->needParseRsp) {
@@ -213,9 +220,9 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
         while (client.available()) {
             char c = static_cast<char>(client.read());
             info->buf[info->curPos++] = c;
-            info->buf[info->curPos] = 0;
-            if (c == '\n') {
-                info->buf[info->curPos] = 0;
+            info->buf[info->curPos] = 0;            
+            if (c == '\n') {                
+                if (SERIAL_DEBUG) Serial.println(info->buf);
                 //Serial.print(info->buf);
                 if (info->curPos == 2) {
                     info->state = SND_BODY;
@@ -228,7 +235,7 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
     }
 
     if (info->buf[0] != 0) {
-        //Serial.println(info->buf);
+        if (SERIAL_DEBUG) Serial.println(info->buf);
         strcpy(info->rsp, info->buf);
         if (info->state == SND_BODY) {
             if (SERIAL_DEBUG) Serial.println("parse done");
@@ -255,7 +262,7 @@ void setup()
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     //pinMode(SendKey, INPUT_PULLUP);  //Btn to send data
-    Serial.println();
+    Serial.println("");
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password); //Connect to wifi
