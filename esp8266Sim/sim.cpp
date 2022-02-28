@@ -310,6 +310,11 @@ void loop()
         if (client.connected())
         {
             if (SERIAL_DEBUG) Serial.println("Client Connected");
+            SendInfo srvInf;
+            MotorCmd mcmd;
+            parseResponse(client, &srvInf);
+            loopReceivedCommands(srvInf, mcmd);
+            if (SERIAL_DEBUG) Serial.println("Client disconnected");
         }
 
         //while (client.connected()) {
@@ -321,12 +326,7 @@ void loop()
         //        client.write(Serial.read());
         //    }
         //}
-        //client.stop();
-        SendInfo srvInf;
-        MotorCmd mcmd;
-        parseResponse(client, &srvInf);
-        loopReceivedCommands(srvInf, mcmd);
-        if (SERIAL_DEBUG) Serial.println("Client disconnected");
+        //client.stop();        
     }
     else {
        delay(500);
