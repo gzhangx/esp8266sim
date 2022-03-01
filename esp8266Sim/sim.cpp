@@ -30,16 +30,9 @@ WiFiClient outClient;
 const int BUFSIZE = 1024;
 const int CMDSIZE = 64;
 
-typedef enum {
-    SND_INIT,
-    SND_RSP,
-    SND_BODY,
-    SND_DONE,
-} SndState;
 
 struct SendInfo {
     char buf[BUFSIZE];
-    SndState state = SND_INIT;
     bool needParseRsp = true;
     long lastActionTime = 0;
     bool inBody = false;
@@ -74,7 +67,7 @@ void stopMotor() {
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }
-void parseResponse(WiFiClient& client, SendInfo* info);
+bool parseResponse(WiFiClient& client, SendInfo* info);
 
 
 void parseSendInfo(SendInfo & info) {
@@ -192,42 +185,35 @@ void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
     va_start(args, fmt);
     vsnprintf(inf.buf, sizeof(inf.buf), fmt, args);
     va_end(args);    
-    inf.state = SND_INIT;
 }
 bool checkAction(SendInfo * info) {
-    if (info->state == SND_DONE) {
-        if (SERIAL_DEBUG) Serial.println("checkAction ignored sd-done");
-        return false;
-    }
-    if (!outClient.connected() && info->state == SND_INIT) {
-        outClient.connect("192.168.1.41", 8101);
-        if (SERIAL_DEBUG) Serial.print(info->buf);
-        outClient.write((uint8_t*)info->buf, strlen(info->buf));
-        info->state = SND_RSP;
-        info->lastActionTime = millis();
-        info->rsp[0] = 0;
-        info->inBody = false;
-        info->curPos = 0;
-    }    
-    
+
+    outClient.connect("192.168.1.41", 8101);
+    if (SERIAL_DEBUG) Serial.print(info->buf);
+    outClient.write((uint8_t*)info->buf, strlen(info->buf));
+    info->lastActionTime = millis();
+    info->rsp[0] = 0;
+    info->inBody = false;
+    info->curPos = 0;
+
+
     if (!outClient.connected()) {
         if (SERIAL_DEBUG) Serial.println("!!!!! check action ignored, not connected");
         return false;
     }
 
     //printf("debugremove trying to read\n");
-    if (info->needParseRsp) {
-        parseResponse(outClient, info);
-        return true;
-    }
-    else {
-        info->state = SND_DONE;
-        outClient.stop();
-    }
-    return false;
+
+    return parseResponse(outClient, info);
 }
 
-void parseResponse(WiFiClient& client, SendInfo* info) {
+bool parseResponse(WiFiClient& client, SendInfo* info) {
+    for (int i = 0; i < 100; i++) {
+        if (client.available()) break;
+        delay(10);
+    }
+    info->buf[0] = 0;
+    bool hasBody = false;
     if (client.available()) {
         while (client.available()) {
             char c = static_cast<char>(client.read());
@@ -237,7 +223,7 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
                 if (SERIAL_DEBUG) Serial.println(info->buf);
                 //Serial.print(info->buf);
                 if (info->curPos == 2) {
-                    info->state = SND_BODY;
+                    hasBody = true;
                 }
                 info->buf[0] = 0;
                 info->curPos = 0;
@@ -247,15 +233,14 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
     }
     client.stop();
 
-    if (info->buf[0] != 0) {
+    if (hasBody) {
         if (SERIAL_DEBUG) Serial.println(info->buf);
         strcpy(info->rsp, info->buf);
-        if (info->state == SND_BODY) {
-            if (SERIAL_DEBUG) Serial.println("parse done");
-            info->state = SND_DONE;
-            parseSendInfo(*info);                        
-        }
+        if (SERIAL_DEBUG) Serial.println("parse done");
+        parseSendInfo(*info);
+        return true;
     }
+    return false;
 }
 
 SendInfo sndState;
@@ -331,8 +316,9 @@ void loop()
         if (client.connected())
         {
             if (SERIAL_DEBUG) Serial.println("Client Connected");            
-            parseResponse(client, &srvInf);
-            loopReceivedCommands(srvInf, mcmd);
+            if (parseResponse(client, &srvInf)) {
+                loopReceivedCommands(srvInf, mcmd);
+            }
             if (SERIAL_DEBUG) Serial.println("Client disconnected");
         }
 
