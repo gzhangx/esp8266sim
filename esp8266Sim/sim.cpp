@@ -21,11 +21,7 @@ int count = 0;
 
 CheapStepper cstepper(D5, D6, D7, D8);
 
-void stopMotor() {
-    for (int i = 0; i < 4; i++) {
-        digitalWrite(cstepper.getPin(i), 0);
-    }
-}
+
 //=======================================================================
 //                    Loop
 //=======================================================================
@@ -67,6 +63,12 @@ void print(const char * fmt, ...) {
     vsnprintf(print_buf, sizeof(print_buf), fmt, args);
     va_end(args);
     Serial.print(print_buf);
+}
+
+void stopMotor() {
+    for (int i = 0; i < 4; i++) {
+        digitalWrite(cstepper.getPin(i), 0);
+    }
 }
 
 void fillRegisterCmd(char * buf, const char *ip) {
