@@ -135,6 +135,7 @@ void runMotor(MotorCmd & cmd) {
     int amount = cmd.amount;
     while (amount>0) {
         cstepper.move(cmd.dir, 1);
+        delay(0);
     }
     cmd.amount = 0;
 }
@@ -337,7 +338,7 @@ void loop()
         //client.stop();        
     }
     else {
-       delay(500);
+       delay(1);
     }
 
     
