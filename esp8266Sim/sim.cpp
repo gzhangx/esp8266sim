@@ -128,15 +128,15 @@ void debugTest() {
     }
 }
 
-void runMotor(MotorCmd & cmd) {
-    if (cmd.amount <= 0) return;
-    if (cmd.rpm) {
-        cstepper.setRpm(cmd.rpm);
-    }
+void runMotor(MotorCmd & cmd) {    
+    //if (cmd.rpm) {
+    //    cstepper.setRpm(cmd.rpm);
+    //}
     int amount = cmd.amount;
-    while (amount--) {
+    while (amount>0) {
         cstepper.move(cmd.dir, 1);
     }
+    cmd.amount = 0;
 }
 
 void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
@@ -155,6 +155,7 @@ void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
             if (rpm <= 0) rpm = 1;
             print("resolved=%s=%i\n", cmd, rpm);
             mcmd.rpm = rpm;
+            cstepper.setRpm(rpm);
         }
         else if (!strcmp(cmd, "dir")) {
             int dir = atoi(val);
