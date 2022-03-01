@@ -3,7 +3,7 @@
 //#include <ESP8266WiFi.h>
 //#include <gglocal.h>
 //#define SendKey 0  //Button to send data Flash BTN on NodeMCU
-
+#include "time.h"
 #ifndef STASSID
 #define STASSID "test"
 #define STAPSK  "test"
@@ -64,6 +64,13 @@ void stopMotor() {
     }
 }
 
+
+void syncTime() {
+    const char* ntpServer = "pool.ntp.org";
+    const long  gmtOffset_sec = 18000;   //Replace with your GMT offset (seconds)
+    const int   daylightOffset_sec = 0; //Replace with your daylight offset (seconds)
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+}
 void fillRegisterCmd(char * buf, const char *ip) {
     snprintf(buf, BUFSIZE, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), ip);
 }

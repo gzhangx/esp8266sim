@@ -101,3 +101,5 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
     }
 
     void digitalWrite(int pin, int mode) {}
+
+    void configTime(long gmtOffset_sec, int daylightOffset_sec, const char*ntpServer) {}
