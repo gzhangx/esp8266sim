@@ -175,6 +175,7 @@ void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
             int amount = atoi(val);
             print("resolved=%s=%i\n", cmd, amount);
             mcmd.amount = amount;
+            runMotor(mcmd);
         }
         else if (!strcmp(cmd, "enabled")) {
             int enabled = atoi(val);
@@ -183,8 +184,7 @@ void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
             if (!mcmd.enabled) stopMotor();
         }
     }
-
-    runMotor(mcmd);
+    
 }
 
 void fillSendInfo(SendInfo & inf, const char * fmt, ...) {
