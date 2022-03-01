@@ -80,3 +80,5 @@ void setup();
 void loop();
 
 long millis();
+
+void digitalWrite(int pin, int mode);

@@ -12,6 +12,8 @@ public:
     CheapStepper(int a, int b, int c, int d);
     void  setRpm(int rpm);
     void move(int a, int b);
+    inline int getPin(int p) {  return 0; // default 0
+    }
 };
 
 #endif

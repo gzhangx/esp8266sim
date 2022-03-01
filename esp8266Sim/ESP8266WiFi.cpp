@@ -99,3 +99,5 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
     long millis() {
         return clock();
     }
+
+    void digitalWrite(int pin, int mode) {}

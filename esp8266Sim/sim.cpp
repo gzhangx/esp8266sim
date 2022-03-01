@@ -21,6 +21,11 @@ int count = 0;
 
 CheapStepper cstepper(D5, D6, D7, D8);
 
+void stopMotor() {
+    for (int i = 0; i < 4; i++) {
+        digitalWrite(cstepper.getPin(i), 0);
+    }
+}
 //=======================================================================
 //                    Loop
 //=======================================================================
@@ -136,6 +141,7 @@ void runMotor(MotorCmd & cmd) {
     while (amount>0) {
         cstepper.move(cmd.dir, 1);
         delay(0);
+        amount--;
     }
     cmd.amount = 0;
 }
@@ -172,6 +178,7 @@ void loopReceivedCommands(SendInfo & info, MotorCmd & mcmd) {
             int enabled = atoi(val);
             print("resolved=%s=%i\n", cmd, enabled);
             mcmd.enabled = (bool)(enabled!=0);
+            if (!mcmd.enabled) stopMotor();
         }
     }
 
