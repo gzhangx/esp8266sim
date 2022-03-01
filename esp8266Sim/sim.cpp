@@ -14,7 +14,7 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-const bool SERIAL_DEBUG = true;
+const bool SERIAL_DEBUG = false;
 int port = 8888;  //Port number
 WiFiServer server(port);
 int count = 0;
@@ -54,13 +54,14 @@ struct MotorCmd {
     int amount;
     bool enabled;
 };
+
+char print_buf[1000];
 void print(const char * fmt, ...) {
-    va_list args;
-    char buf[1000];
+    va_list args;    
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
+    vsnprintf(print_buf, sizeof(print_buf), fmt, args);
     va_end(args);
-    Serial.print(buf);
+    Serial.print(print_buf);
 }
 
 void fillRegisterCmd(char * buf, const char *ip) {
@@ -294,11 +295,12 @@ void setup()
     checkAction(&sndState);
 }
 
-
+SendInfo srvInf;
+MotorCmd mcmd;
 
 void loop()
 {        
-    cstepper.move(1, 1);
+    //cstepper.move(1, 1);
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
 
@@ -316,9 +318,7 @@ void loop()
     if (client) {
         if (client.connected())
         {
-            if (SERIAL_DEBUG) Serial.println("Client Connected");
-            SendInfo srvInf;
-            MotorCmd mcmd;
+            if (SERIAL_DEBUG) Serial.println("Client Connected");            
             parseResponse(client, &srvInf);
             loopReceivedCommands(srvInf, mcmd);
             if (SERIAL_DEBUG) Serial.println("Client disconnected");
