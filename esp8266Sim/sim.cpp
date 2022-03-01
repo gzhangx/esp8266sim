@@ -236,6 +236,7 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
             delay(0);
         }
     }
+    client.stop();
 
     if (info->buf[0] != 0) {
         if (SERIAL_DEBUG) Serial.println(info->buf);
@@ -243,8 +244,7 @@ void parseResponse(WiFiClient& client, SendInfo* info) {
         if (info->state == SND_BODY) {
             if (SERIAL_DEBUG) Serial.println("parse done");
             info->state = SND_DONE;
-            parseSendInfo(*info);            
-            client.stop();
+            parseSendInfo(*info);                        
         }
     }
 }
