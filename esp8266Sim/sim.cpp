@@ -319,13 +319,14 @@ void loop()
     const long timeDiff = curMills - lastCheckTime;
     //print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
     if (millis() - lastCheckTime > 10000) {
-        if (SERIAL_DEBUG) print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
+        print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
         lastCheckTime = curMills ;
         fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
+        if (checkAction(&sndState)) {
+         loopReceivedCommands(sndState, mcmd);
+        }
     }
-    // if (checkAction(&sndState)) {
-    // loopReceivedCommands(sndState);
-    //}
+    
     if (client) {
         if (client.connected())
         {
