@@ -272,9 +272,10 @@ const String postForms = "<html>\
   <body>\
     <h1>POST form data to / motorCommand /</h1><br>\
     <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/motorCommand/\">\
-      <input type=\"text\" name=\"rpm\" value=\"1\"><br>\
-<input type=\"text\" name=\"amount\" value=\"100\"><br>\
-<input type=\"text\" name=\"dir\" value=\"0\"><br>\
+      RPM <input type=\"text\" name=\"rpm\" value=\"1\"><br>\
+DIR <input type=\"text\" name=\"dir\" value=\"0\"><br>\
+Amount <input type=\"text\" name=\"amount\" value=\"100\"><br>\
+Enabled <input type=\"text\" name=\"enabled\" value=\"0\"><br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
   </body>\
