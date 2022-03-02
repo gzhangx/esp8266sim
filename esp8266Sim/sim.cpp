@@ -21,7 +21,7 @@ int count = 0;
 
 CheapStepper cstepper(D5, D6, D7, D8);
 
-
+const int led = LED_BUILTIN;
 //=======================================================================
 //                    Loop
 //=======================================================================
@@ -66,6 +66,12 @@ void stopMotor() {
 
 
 void syncTime() {
+    static long lastSyncTime = millis();
+    static long curSyncTime = 0;
+    curSyncTime = millis();
+    if (curSyncTime - lastSyncTime < 20000) return;
+    lastSyncTime = curSyncTime;
+    Serial.println("sync time");
     const char* ntpServer = "pool.ntp.org";
     const long  gmtOffset_sec = 18000;   //Replace with your GMT offset (seconds)
     const int   daylightOffset_sec = 0; //Replace with your daylight offset (seconds)
@@ -261,7 +267,10 @@ long lastCheckTime = millis();
 //=======================================================================
 void setup()
 {
+    pinMode(led, OUTPUT);
+    digitalWrite(led, 1);
     delay(500);
+    digitalWrite(led, 0);
     cstepper.setRpm(12);
     Serial.begin(115200);
     Serial.setDebugOutput(true);
@@ -303,6 +312,7 @@ MotorCmd mcmd;
 
 void loop()
 {        
+    syncTime();
     //cstepper.move(1, 1);
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();
@@ -314,18 +324,22 @@ void loop()
         print("%ld %ld %ld\n", curMills, lastCheckTime, timeDiff);
         lastCheckTime = curMills ;
         fillSendInfo(sndState, "GET /esp/getAction?mac=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str());       
+        digitalWrite(led, 1);
         if (checkAction(&sndState)) {
          loopReceivedCommands(sndState, mcmd);
         }
+        digitalWrite(led, 0);
     }
     
     if (client) {
         if (client.connected())
         {
             if (SERIAL_DEBUG) Serial.println("Client Connected");            
+            digitalWrite(led, 1);
             if (parseResponse(client, &srvInf)) {
                 loopReceivedCommands(srvInf, mcmd);
             }
+            digitalWrite(led, 0);
             if (SERIAL_DEBUG) Serial.println("Client disconnected");
         }
 

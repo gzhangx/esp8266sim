@@ -84,3 +84,6 @@ long millis();
 void digitalWrite(int pin, int mode);
 
 void configTime(long gmtOffset_sec, int daylightOffset_sec, const char*ntpServer);
+
+const int LED_BUILTIN = 4;
+const int OUTPUT = 1;
