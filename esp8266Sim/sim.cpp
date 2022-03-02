@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "CheapStepper.h"
+#include <ESP8266WebServer.h>
 //#include <ESP8266WiFi.h>
 //#include <gglocal.h>
 //#define SendKey 0  //Button to send data Flash BTN on NodeMCU
@@ -30,6 +31,7 @@ WiFiClient outClient;
 const int BUFSIZE = 1024;
 const int CMDSIZE = 64;
 
+ESP8266WebServer webserver(80);
 
 struct SendInfo {
     char buf[BUFSIZE];
@@ -260,7 +262,79 @@ SendInfo sndState;
 
 long lastCheckTime = millis();
 
+const String postForms = "<html>\
+  <head>\
+    <title>ESP8266 Web Server POST handling</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <h1>POST plain text to /postplain/</h1><br>\
+    <form method=\"post\" enctype=\"text/plain\" action=\"/postplain/\">\
+      <input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>\
+      <input type=\"submit\" value=\"Submit\">\
+    </form>\
+    <h1>POST form data to /postform/</h1><br>\
+    <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">\
+      <input type=\"text\" name=\"hello\" value=\"world\"><br>\
+      <input type=\"submit\" value=\"Submit\">\
+    </form>\
+  </body>\
+</html>";
+void handleRoot() {
+    digitalWrite(led, 1);
+    webserver.send(200, "text/html", postForms);
+    digitalWrite(led, 0);
+}
 
+void handlePlain() {
+    if (webserver.method() != HTTP_POST) {
+        digitalWrite(led, 1);
+        webserver.send(405, "text/plain", "Method Not Allowed");
+        digitalWrite(led, 0);
+    }
+    else {
+        digitalWrite(led, 1);
+        webserver.send(200, "text/plain", String("POST body was:\n") + webserver.arg("plain"));
+        digitalWrite(led, 0);
+    }
+}
+
+void handleForm() {
+    if (webserver.method() != HTTP_POST) {
+        digitalWrite(led, 1);
+        webserver.send(405, "text/plain", "Method Not Allowed");
+        digitalWrite(led, 0);
+    }
+    else {
+        digitalWrite(led, 1);
+
+        String message = "POST form was:\n";
+        for (uint8_t i = 0; i < webserver.args(); i++) {
+            message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
+        }
+        webserver.send(200, "text/plain", message);
+        digitalWrite(led, 0);
+    }
+}
+
+void handleNotFound() {
+    digitalWrite(led, 1);
+    String message = "File Not Found\n\n";
+    message += "URI: ";
+    message += webserver.uri();
+    message += "\nMethod: ";
+    message += (webserver.method() == HTTP_GET) ? "GET" : "POST";
+    message += "\nArguments: ";
+    message += webserver.args();
+    message += "\n";
+    for (uint8_t i = 0; i < webserver.args(); i++) {
+        message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
+    }
+    webserver.send(404, "text/plain", message);
+    digitalWrite(led, 0);
+}
 
 //=======================================================================
 //                    Power on setup
@@ -305,6 +379,13 @@ void setup()
     sprintf(buf, "%i.%i.%i.%i", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
     fillSendInfo(sndState, "GET /esp/register?mac=%s&ip=%s  HTTP/1.0\r\n\r\n", WiFi.macAddress().c_str(), buf);
     checkAction(&sndState);
+
+
+    webserver.on("/", handleRoot);
+    webserver.on("/postplain/", handlePlain);
+    webserver.on("/postform/", handleForm);
+    webserver.onNotFound(handleNotFound);
+    webserver.begin();
 }
 
 SendInfo srvInf;

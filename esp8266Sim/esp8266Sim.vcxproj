@@ -74,12 +74,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -144,14 +146,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CheapStepper.h" />
+    <ClInclude Include="ESP8266WebServer.h" />
     <ClInclude Include="ESP8266WiFi.h" />
+    <ClInclude Include="fake.h" />
     <ClInclude Include="libs\gtcpip.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CheapStepper.cpp" />
+    <ClCompile Include="ESP8266WebServer.cpp" />
     <ClCompile Include="ESP8266WiFi.cpp" />
+    <ClCompile Include="fake.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="libs\gctcpip.cpp" />
     <ClCompile Include="sim.cpp" />

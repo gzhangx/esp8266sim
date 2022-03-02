@@ -36,6 +36,12 @@
     <ClInclude Include="CheapStepper.h">
       <Filter>Source Files\libs</Filter>
     </ClInclude>
+    <ClInclude Include="ESP8266WebServer.h">
+      <Filter>Source Files\libs</Filter>
+    </ClInclude>
+    <ClInclude Include="fake.h">
+      <Filter>Source Files\libs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -54,6 +60,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CheapStepper.cpp">
+      <Filter>Source Files\libs</Filter>
+    </ClCompile>
+    <ClCompile Include="ESP8266WebServer.cpp">
+      <Filter>Source Files\libs</Filter>
+    </ClCompile>
+    <ClCompile Include="fake.cpp">
       <Filter>Source Files\libs</Filter>
     </ClCompile>
   </ItemGroup>

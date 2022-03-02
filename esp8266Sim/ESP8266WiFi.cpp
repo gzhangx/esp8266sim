@@ -1,7 +1,7 @@
 #include "stdafx.h"
 //#include<time.h>
  WiFiClass WiFi;
- SerialClass Serial;
+
 
 void pinMode(int key, int mode) {}
 void delay(int ms) {
