@@ -17,4 +17,9 @@ void ESP8266WebServer::begin() {}
 int ESP8266WebServer::method() { return 0; }
 void ESP8266WebServer::send(int code, const char* contentType, String content) {
 
+
+}
+
+void ESP8266WebServer::handleClient() {
+
 }

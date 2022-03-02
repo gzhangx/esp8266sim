@@ -394,6 +394,7 @@ MotorCmd mcmd;
 void loop()
 {        
     syncTime();
+    webserver.handleClient();
     //cstepper.move(1, 1);
     //sndState.needParseRsp = true;
     WiFiClient client = server.available();

@@ -14,6 +14,8 @@ public:
     inline String arg(String who) { return ""; }
     inline int args() { return 0; }
     inline String argName(int who) { return ""; }
+
+    void handleClient();
 };
 
 const int HTTP_POST = 0;
