@@ -143,16 +143,16 @@ void debugTest() {
     }
 }
 
-void runMotor(MotorCmd & cmd) {    
-    //if (cmd.rpm) {
-    //    cstepper.setRpm(cmd.rpm);
-    //}
-    int amount = cmd.amount;
+void runMotor(int dir, int amount) {    
     while (amount>0) {
-        cstepper.move(cmd.dir, 1);
+        cstepper.move(dir, 1);
         delay(0);
         amount--;
     }
+}
+
+void runMotor(MotorCmd & cmd) {    
+    runMotor(cmd.dir, cmd.amount);    
     cmd.amount = 0;
 }
 
@@ -270,14 +270,11 @@ const String postForms = "<html>\
     </style>\
   </head>\
   <body>\
-    <h1>POST plain text to /postplain/</h1><br>\
-    <form method=\"post\" enctype=\"text/plain\" action=\"/postplain/\">\
-      <input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>\
-      <input type=\"submit\" value=\"Submit\">\
-    </form>\
-    <h1>POST form data to /postform/</h1><br>\
-    <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">\
-      <input type=\"text\" name=\"hello\" value=\"world\"><br>\
+    <h1>POST form data to / motorCommand /</h1><br>\
+    <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/motorCommand/\">\
+      <input type=\"text\" name=\"rpm\" value=\"1\"><br>\
+<input type=\"text\" name=\"amount\" value=\"100\"><br>\
+<input type=\"text\" name=\"dir\" value=\"0\"><br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
   </body>\
@@ -309,12 +306,55 @@ void handleForm() {
     }
     else {
         digitalWrite(led, 1);
-
-        String message = "POST form was:\n";
+        const int MAXRPL = 128;
+        char buf[MAXRPL];
+        buf[0] = 0;
+        int rpm = 1;
+        int dir = 1;
+        int amount = 0;
         for (uint8_t i = 0; i < webserver.args(); i++) {
-            message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
+            const char * cmd = webserver.argName(i).c_str();
+            const char * val = webserver.arg(i).c_str();
+            if (!strcmp(cmd, "rpm")) {
+                rpm = atoi(val);
+                if (rpm <= 0) rpm = 1;
+                print("resolved=%s=%i\n", cmd, rpm);
+                cstepper.setRpm(rpm);
+                strncat(buf, "set rpm=", MAXRPL);
+                strncat(buf, val, MAXRPL);
+                strncat(buf, " ", MAXRPL);
+            }
+                else if (!strcmp(cmd, "dir")) {
+                    dir = atoi(val);
+                    print("resolved=%s=%i\n", cmd, dir);
+                    strncat(buf, "set dir=", MAXRPL);
+                    strncat(buf, val, MAXRPL);
+                    strncat(buf, " ", MAXRPL);
+                }
+                else if (!strcmp(cmd, "amount")) {
+                    amount = atoi(val);                    
+                    if (amount > 0) {
+                        if (amount > 10000) {                            
+                            amount = 10000;  
+                            print("hard limiting amount %s to %i\n", val, amount);
+                        }
+                        runMotor(dir, amount);
+                        strncat(buf, "set amount=", MAXRPL);
+                        strncat(buf, val, MAXRPL);
+                        strncat(buf, " ", MAXRPL);
+                    }
+                    print("resolved=%s=%i\n", cmd, amount);
+                }
+                else if (!strcmp(cmd, "enabled")) {
+                    int enabled = atoi(val);
+                    print("resolved=%s=%i\n", cmd, enabled);                    
+                    if (!enabled) stopMotor();
+                    strncat(buf, "set enabled=", MAXRPL);
+                    strncat(buf, val, MAXRPL);
+                    strncat(buf, " ", MAXRPL);
+                }
         }
-        webserver.send(200, "text/plain", message);
+        webserver.send(200, "text/plain", "OK");
         digitalWrite(led, 0);
     }
 }
@@ -381,9 +421,8 @@ void setup()
     checkAction(&sndState);
 
 
-    webserver.on("/", handleRoot);
-    webserver.on("/postplain/", handlePlain);
-    webserver.on("/postform/", handleForm);
+    webserver.on("/", handleRoot);    
+    webserver.on("/motorCommand/", handleForm);
     webserver.onNotFound(handleNotFound);
     webserver.begin();
 }
