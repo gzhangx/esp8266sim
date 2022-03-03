@@ -276,6 +276,8 @@ const String postForms = "<html>\
 DIR <input type=\"text\" name=\"dir\" value=\"0\"><br>\
 Amount <input type=\"text\" name=\"amount\" value=\"100\"><br>\
 Enabled <input type=\"text\" name=\"enabled\" value=\"0\"><br>\
+Enabled <input type=\"text\" name=\"ap\" value=\"0\"><br>\
+Enabled <input type=\"text\" name=\"st\" value=\"0\"><br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
   </body>\
@@ -354,12 +356,13 @@ void handleForm() {
                     strncat(buf, val.c_str(), MAXRPL);
                     strncat(buf, " ", MAXRPL);
                 }
-                else if (cmd == "ap") {
+                else if (cmd == "ap" && val == "1") {
                     Serial.print("going ap");
                     WiFi.softAP("esp_8266");
-                    Serial.print(WiFi.softAPIP());
+                    Serial.print("going ap addr");
+                    Serial.println(WiFi.softAPIP());
                 }
-                else if (cmd == "st") {
+                else if (cmd == "st" && val == "1") {
                     WiFi.softAPdisconnect();
                     WiFi.disconnect();
                     WiFi.mode(WIFI_STA);

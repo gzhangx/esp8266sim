@@ -43,6 +43,7 @@ public:
     String(std::string str);
     String operator=(const char* msg);
     String operator+(String msg);
+    String operator+(size_t num);
 };
 
 

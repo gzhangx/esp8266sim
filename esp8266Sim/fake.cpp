@@ -17,6 +17,11 @@ String String::operator+(String msg) {
     return (std::string(msg) + std::string(*this)).c_str();
 }
 
+String  String::operator+(size_t num) {
+    char buf[2048];
+    snprintf(buf, sizeof(buf), "%s%zu", c_str(), num);    
+    return String(buf);
+}
 
 
 
