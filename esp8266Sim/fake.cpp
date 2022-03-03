@@ -4,6 +4,10 @@ SerialClass Serial;
 
 String::String(const char * str) : std::string(str) {
 }
+
+String::String(std::string str) : std::string(str) {
+}
+
 String String::operator=(const char* msg) {
     return String(msg);
 }

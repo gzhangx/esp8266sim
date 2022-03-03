@@ -314,26 +314,26 @@ void handleForm() {
         int dir = 1;
         int amount = 0;
         for (uint8_t i = 0; i < webserver.args(); i++) {
-            const char * cmd = webserver.argName(i).c_str();
-            const char * val = webserver.arg(i).c_str();
-            if (!strcmp(cmd, "rpm")) {
-                rpm = atoi(val);
+            String cmd = webserver.argName(i);
+            String val = webserver.arg(i);
+            if (cmd ==  "rpm") {
+                rpm = atoi(val.c_str());
                 if (rpm <= 0) rpm = 1;
-                print("resolved=%s=%i\n", cmd, rpm);
+                print("resolved=%s=%i\n", cmd.c_str(), rpm);
                 cstepper.setRpm(rpm);
                 strncat(buf, "set rpm=", MAXRPL);
-                strncat(buf, val, MAXRPL);
+                strncat(buf, val.c_str(), MAXRPL);
                 strncat(buf, " ", MAXRPL);
             }
-                else if (!strcmp(cmd, "dir")) {
-                    dir = atoi(val);
-                    print("resolved=%s=%i\n", cmd, dir);
+                else if (cmd == "dir") {
+                    dir = atoi(val.c_str());
+                    print("resolved=%s=%i\n", cmd.c_str(), dir);
                     strncat(buf, "set dir=", MAXRPL);
-                    strncat(buf, val, MAXRPL);
+                    strncat(buf, val.c_str(), MAXRPL);
                     strncat(buf, " ", MAXRPL);
                 }
-                else if (!strcmp(cmd, "amount")) {
-                    amount = atoi(val);                    
+                else if (cmd == "amount") {
+                    amount = atoi(val.c_str());                    
                     if (amount > 0) {
                         if (amount > 10000) {                            
                             amount = 10000;  
@@ -341,17 +341,17 @@ void handleForm() {
                         }
                         runMotor(dir, amount);
                         strncat(buf, "set amount=", MAXRPL);
-                        strncat(buf, val, MAXRPL);
+                        strncat(buf, val.c_str(), MAXRPL);
                         strncat(buf, " ", MAXRPL);
                     }
-                    print("resolved=%s=%i\n", cmd, amount);
+                    print("resolved=%s=%i\n", cmd.c_str(), amount);
                 }
-                else if (!strcmp(cmd, "enabled")) {
-                    int enabled = atoi(val);
-                    print("resolved=%s=%i\n", cmd, enabled);                    
+                else if (cmd == "enabled") {
+                    int enabled = val == "1";
+                    print("resolved=%s=%i\n", cmd.c_str(), enabled);                    
                     if (!enabled) stopMotor();
                     strncat(buf, "set enabled=", MAXRPL);
-                    strncat(buf, val, MAXRPL);
+                    strncat(buf, val.c_str(), MAXRPL);
                     strncat(buf, " ", MAXRPL);
                 }
         }

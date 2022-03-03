@@ -40,6 +40,7 @@ const int OUTPUT = 1;
 class String : public std::string {
 public:
     String(const char * str);
+    String(std::string str);
     String operator=(const char* msg);
     String operator+(String msg);
 };
