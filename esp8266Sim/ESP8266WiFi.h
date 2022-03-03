@@ -50,6 +50,12 @@ public:
     inline std::string macAddress() {
         return "testmac";
     }
+    inline char * softAPIP() {
+        return "testapip";
+    }
+    inline void softAP(const char *addr) {}
+    inline void softAPdisconnect() {}
+    inline void disconnect() {}
 };
 
 extern WiFiClass WiFi;

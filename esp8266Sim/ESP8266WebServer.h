@@ -24,7 +24,7 @@ public:
         return String(argVals[who]);
     }
     inline String arg(String who) { return argMap[who]; }
-    inline int args() { return argNames.size(); }
+    inline size_t args() { return argNames.size(); }
     String argName(int who);
 
     void handleClient();

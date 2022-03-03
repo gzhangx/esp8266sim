@@ -354,6 +354,16 @@ void handleForm() {
                     strncat(buf, val.c_str(), MAXRPL);
                     strncat(buf, " ", MAXRPL);
                 }
+                else if (cmd == "ap") {
+                    Serial.print("going ap");
+                    WiFi.softAP("esp_8266");
+                    Serial.print(WiFi.softAPIP());
+                }
+                else if (cmd == "st") {
+                    WiFi.softAPdisconnect();
+                    WiFi.disconnect();
+                    WiFi.mode(WIFI_STA);
+                }
         }
         webserver.send(200, "text/plain", "OK");
         digitalWrite(led, 0);
