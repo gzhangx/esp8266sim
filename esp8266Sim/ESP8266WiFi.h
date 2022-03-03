@@ -1,6 +1,7 @@
 #pragma once
 #include "libs\gtcpip.h"
 #include "fake.h"
+#include "IPAddress.h"
 
 const int RDBUFMAX = 512;
 class WiFiClient {

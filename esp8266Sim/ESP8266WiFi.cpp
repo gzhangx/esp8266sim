@@ -96,10 +96,13 @@ WiFiClient::WiFiClient(gCTcpIp & t) {
 
 
 
-    long millis() {
-        return clock();
+
+    IPAddress::IPAddress() {
+        _ip = 0;
     }
 
-    void digitalWrite(int pin, int mode) {}
+    IPAddress::IPAddress(int address) { _ip = address; }
 
-    void configTime(long gmtOffset_sec, int daylightOffset_sec, const char*ntpServer) {}
+    uint8_t& IPAddress::operator[](int index) {
+        return *(raw_address() + index);
+    }

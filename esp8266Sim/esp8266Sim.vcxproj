@@ -149,6 +149,7 @@
     <ClInclude Include="ESP8266WebServer.h" />
     <ClInclude Include="ESP8266WiFi.h" />
     <ClInclude Include="fake.h" />
+    <ClInclude Include="IPAddress.h" />
     <ClInclude Include="libs\gtcpip.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
